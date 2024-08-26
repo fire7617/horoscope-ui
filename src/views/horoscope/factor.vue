@@ -1,11 +1,11 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="大類" prop="category">
-        <el-input v-model="queryParams.category" placeholder="大類" clearable @keyup.enter.native="handleQuery" />
+      <el-form-item label="權重分類" prop="type">
+        <el-input v-model="queryParams.type" placeholder="請輸入分類" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
-      <el-form-item label="內容" prop="detail">
-        <el-input v-model="queryParams.detail" placeholder="請輸入內容" clearable @keyup.enter.native="handleQuery" />
+      <el-form-item label="權重描述" prop="description">
+        <el-input v-model="queryParams.description" placeholder="請輸入描述" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -16,33 +16,33 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-          v-hasPermi="['horoscope:answer:add']">新增</el-button>
+          v-hasPermi="['horoscope:factor:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate"
-          v-hasPermi="['horoscope:answer:edit']">修改</el-button>
+          v-hasPermi="['horoscope:factor:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete"
-          v-hasPermi="['horoscope:answer:remove']">刪除</el-button>
+          v-hasPermi="['horoscope:factor:remove']">刪除</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="answerList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="factorList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="分類" align="center" prop="category" />
-      <el-table-column label="數量" align="center" prop="num" />
-      <el-table-column label="詳情" align="center" prop="detail" show-overflow-tooltip/>
+      <el-table-column label="分類" align="center" prop="type" />
+      <el-table-column label="權重" align="center" prop="effect" />
+      <el-table-column label="描述" align="center" prop="description" show-overflow-tooltip/>
       <el-table-column label="建立時間" align="center" prop="createTime"  />
       <el-table-column label="更新時間" align="center" prop="updateTime"  />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="150">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-            v-hasPermi="['horoscope:answer:edit']">修改</el-button>
+            v-hasPermi="['horoscope:factor:edit']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"
-            v-hasPermi="['horoscope:answer:remove']">刪除</el-button>
+            v-hasPermi="['horoscope:factor:remove']">刪除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -54,11 +54,14 @@
     <!-- 添加或修改對話框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="分類" prop="category">
-          <el-input v-model="form.category" placeholder="請輸入分類" />
+        <el-form-item label="分類" prop="type">
+          <el-input v-model="form.type" placeholder="請輸入分類" />
         </el-form-item>
-        <el-form-item label="詳情" prop="detail">
-          <el-input v-model="form.detail" placeholder="請輸入詳情" />
+        <el-form-item label="權重" prop="effect">
+          <el-input v-model="form.effect" placeholder="請輸入權重" />
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input type="textarea" v-model="form.description" placeholder="請輸入描述" />
         </el-form-item>
         
       </el-form>
@@ -73,10 +76,10 @@
 </template>
 
 <script>
-import { listAnswer, getAnswer, delAnswer, addAnswer, updateAnswer } from "@/api/system/answer";
+import { listFactor, getFactor, delFactor, addFactor, updateFactor } from "@/api/system/factor";
 
 export default {
-  name: 'Answer',
+  name: 'Factor',
   dicts: ['sys_normal_disable'],
   data() {
     return {
@@ -93,7 +96,7 @@ export default {
       // 總條數
       total: 0,
       // 解答表格數據
-      answerList: [],
+      factorList: [],
       // 彈出層標題
       title: "",
       // 是否顯示彈出層
@@ -102,18 +105,21 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        category: undefined,
-        detail: undefined
+        type: undefined,
+        description: undefined
       },
       // 表單參數
       form: {},
       // 表單校驗
       rules: {
-        category: [
-          { required: true, message: "運勢大類不能為空", trigger: "blur" }
+        type: [
+          { required: true, message: "大類不能為空", trigger: "blur" }
         ],
-        detail: [
-          { required: true, message: "詳情不能為空", trigger: "blur" }
+        description: [
+          { required: true, message: "描述不能為空", trigger: "blur" }
+        ],
+        effect: [
+          { required: true, message: "權重不能為空", trigger: "blur" }
         ]
       },
     };
@@ -125,8 +131,8 @@ export default {
     /** 查詢解答列表 */
     getList() {
       this.loading = true;
-      listAnswer(this.queryParams).then(response => {
-        this.answerList = response.rows;
+      listFactor(this.queryParams).then(response => {
+        this.factorList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -171,7 +177,7 @@ export default {
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getAnswer(id).then(response => {
+      getFactor(id).then(response => {
         this.form = response.data;
         this.open = true;
         this.title = "修改解答";
@@ -182,13 +188,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != undefined) {
-            updateAnswer(this.form).then(response => {
+            updateFactor(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addAnswer(this.form).then(response => {
+            addFactor(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -199,9 +205,9 @@ export default {
     },
     /** 刪除按鈕操作 */
     handleDelete(row) {
-      const answerIds = row.id || this.ids;
-      this.$modal.confirm('是否確認刪除解答編號為"' + answerIds + '"的數據項？').then(function () {
-        return delAnswer(answerIds);
+      const factorIds = row.id || this.ids;
+      this.$modal.confirm('是否確認刪除解答編號為"' + factorIds + '"的數據項？').then(function () {
+        return delFactor(factorIds);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("刪除成功");
