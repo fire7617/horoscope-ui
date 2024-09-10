@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查詢會員列表
 export function listMember(query) {
   return request({
-    url: 'member/get_member_list',
+    url: 'sys_member/get_member_list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listMember(query) {
 // 查詢會員詳細
 export function getMember(memberId) {
   return request({
-    url: 'member/get_member/' + memberId,
+    url: 'sys_member/get_member/' + memberId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getMember(memberId) {
 // 新增會員
 export function addMember(data) {
   return request({
-    url: 'member/update_member',
+    url: 'sys_member/update_member',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addMember(data) {
 // 修改會員
 export function updateMember(data) {
   return request({
-    url: 'member/update_member',
+    url: 'sys_member/update_member',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateMember(data) {
 // 刪除會員
 export function delMember(memberId) {
   return request({
-    url: 'member/delete_member/' + memberId,
+    url: 'sys_member/delete_member/' + memberId,
     method: 'delete'
   })
 }
