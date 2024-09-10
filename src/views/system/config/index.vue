@@ -157,7 +157,7 @@
           <el-input v-model="form.configKey" placeholder="請輸入參數鍵名" />
         </el-form-item>
         <el-form-item label="參數鍵值" prop="configValue">
-          <el-input v-model="form.configValue" placeholder="請輸入參數鍵值" />
+          <el-input type="textarea" v-model="form.configValue" placeholder="請輸入參數鍵值" />
         </el-form-item>
         <el-form-item label="系統內置" prop="configType">
           <el-radio-group v-model="form.configType">
