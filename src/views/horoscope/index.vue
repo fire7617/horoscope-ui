@@ -32,8 +32,8 @@
     <el-table v-loading="loading" :data="horoscopeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="大類" align="center" prop="subType" />
-      <el-table-column label="小類" align="center" prop="subStatus" />
+      <el-table-column label="大類" align="center" prop="fmt.subType" />
+      <el-table-column label="小類" align="center" prop="fmt.subStatus" />
       <el-table-column label="分數" align="center" prop="score" />
       <el-table-column label="短評" align="center" prop="shortReview" show-overflow-tooltip />
       <el-table-column label="詳情" align="center" prop="detail" show-overflow-tooltip />
@@ -55,31 +55,49 @@
 
     <!-- 添加或修改對話框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="form" :model="form"  label-width="80px">
         <el-form-item label="大類" prop="subType">
-          <el-input v-model="form.subType" placeholder="請輸入大類" />
+          <el-select v-model="form.subType" @change="handleChangeType">
+            <el-option v-for="item in typeOption" :key="item.value" :label="item.label" :value="item.value"  placeholder="請輸入大類"/>
+          </el-select>
         </el-form-item>
         <el-form-item label="小類" prop="subStatus">
-          <el-input v-model="form.subStatus" placeholder="請輸入小類" />
+          <el-select v-model="form.subStatus" >
+            <template v-if="form.subType===0 || form.subType===4 || form.subType ===5 || form.subType===6">
+              <el-option key="0" label="一般" value="0" ></el-option>
+            </template>
+            <el-option v-if="form.subType===1" v-for="item in loveOption" :key="item.value" :label="item.label" :value="item.value"/>
+            <el-option v-if="form.subType===2" v-for="item in careerOption" :key="item.value" :label="item.label" :value="item.value"/>
+            <el-option v-if="form.subType===3" v-for="item in welthOption" :key="item.value" :label="item.label" :value="item.value"/>
+          </el-select>
         </el-form-item>
-        <el-form-item label="分數" prop="score">
+        <el-form-item label="分數" prop="score" required>
           <el-input v-model="form.score" placeholder="請輸入分數" />
         </el-form-item>
-
-        <el-form-item label="短評" prop="shortReview">
-          <el-input v-model="form.shortReview" placeholder="請輸入短評" />
+        <el-form-item label="">
+            <el-tabs v-model="activeName" >
+              <el-tab-pane label="英文" name="en"></el-tab-pane>
+              <el-tab-pane label="中文" name="zh-tw"></el-tab-pane>
+            </el-tabs>
+        </el-form-item>
+        <el-form-item label="短評" prop="form.shortReview" >
+          <el-input v-model="form.shortReview.en" v-if="activeName==='en'" placeholder="請輸入短評" />
+          <el-input v-model="form.shortReview.tw" v-if="activeName==='zh-tw'" placeholder="請輸入短評" />
+        </el-form-item>
+        
+        <el-form-item label="優勢" prop="advantage" >
+          <el-input v-model="form.advantage.en" v-if="activeName==='en'" placeholder="請輸入優勢" />
+          <el-input v-model="form.advantage.tw" v-if="activeName==='zh-tw'" placeholder="請輸入優勢" />
         </el-form-item>
 
-        <el-form-item label="優勢" prop="advantage">
-          <el-input v-model="form.advantage" placeholder="請輸入優勢" />
+        <el-form-item label="劣勢" prop="disadvantage" >
+          <el-input v-model="form.disadvantage.en" v-if="activeName==='en'" placeholder="請輸入劣勢" />
+          <el-input v-model="form.disadvantage.tw" v-if="activeName==='zh-tw'" placeholder="請輸入劣勢" />
         </el-form-item>
 
-        <el-form-item label="劣勢" prop="disadvantage">
-          <el-input v-model="form.disadvantage" placeholder="請輸入劣勢" />
-        </el-form-item>
-
-        <el-form-item label="詳情" prop="detail">
-          <el-input v-model="form.detail" placeholder="請輸入詳情" />
+        <el-form-item label="詳情" prop="detail" >
+          <el-input v-model="form.detail.en" v-if="activeName==='en'" placeholder="請輸入詳情" />
+          <el-input v-model="form.detail.tw" v-if="activeName==='zh-tw'" placeholder="請輸入詳情" />
         </el-form-item>
         
       </el-form>
@@ -101,6 +119,7 @@ export default {
   dicts: ['sys_normal_disable'],
   data() {
     return {
+      activeName: 'en',
       // 遮罩層
       loading: true,
       // 選中數組
@@ -127,7 +146,24 @@ export default {
         subStatus: undefined
       },
       // 表單參數
-      form: {},
+      form: {
+        shortReview : {
+          en: '',
+          tw: '',
+        },
+        advantage: {
+          en:'',
+          tw: '',
+        },
+        disadvantage: {
+          en:'',
+          tw: '',
+        },
+        detail: {
+          en:'',
+          tw:'',
+        }
+      },
       // 表單校驗
       rules: {
         subType: [
@@ -140,12 +176,55 @@ export default {
           { required: true, message: "運勢分數不能為空", trigger: "blur" }
         ]
       },
+      typeOption: [
+        { value: 0, label: "綜合"},
+        { value: 1, label: "愛情"},
+        { value: 2, label: "學事業"},
+        { value: 3, label: "金錢"},
+        { value: 4, label: "健康"},
+        { value: 5, label: "人際"},
+        { value: 6, label: "旅行"},
+      ],
+      loveOption: [
+        { value: 0, label: "一般"},
+        { value: 1, label: "單身"},
+        { value: 2, label: "暗戀"},
+        { value: 3, label: "曖昧"},
+        { value: 4, label: "戀愛"},
+        { value: 5, label: "已婚"},
+      ],
+      careerOption: [
+        { value: 0, label: "一般"},
+        { value: 1, label: "在學"},
+        { value: 2, label: "求學"},
+        { value: 3, label: "在職"},
+        { value: 4, label: "求職"},
+        { value: 5, label: "轉職"},
+      ],
+      welthOption: [
+        { value: 0, label: "一般"},
+        { value: 1, label: "正財"},
+        { value: 2, label: "偏財"},
+        { value: 3, label: "投資"},
+      ],
+      healthOption: [
+        { value: 0, label: "一般"},
+      ],
+      interpersonalOption: [
+        { value: 0, label: "一般"},
+      ],
+      travelOption: [
+        { value: 0, label: "一般"},
+      ],
     };
   },
   created() {
     this.getList();
   },
   methods: {
+    handleChangeType() {
+      this.form.subStatus = 0
+    },
     /** 查詢運勢結果列表 */
     getList() {
       this.loading = true;
@@ -164,15 +243,27 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        subType: undefined,
-        subStatus: undefined,
-        score: undefined,
-        shortReview: undefined,
-        advantage: undefined,
-        disadvantage: undefined,
-        detail: undefined,
-      };
-      this.resetForm("form");
+        type: '',
+        subStatus: '',
+        score: '',
+        shortReview: {
+          en: '',
+          tw: '',
+        },
+        advantage: {
+          en:'',
+          tw: '',
+        },
+        disadvantage: {
+          en:'',
+          tw: '',
+        },
+        detail: {
+          en:'',
+          tw:'',
+        }
+     };
+      //this.resetForm("form");
     },
     /** 搜索按鈕操作 */
     handleQuery() {

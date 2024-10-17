@@ -49,7 +49,7 @@ export function logout() {
 // 獲取驗證碼
 export function getCodeImg() {
   return request({
-    url: 'verify_code/index',
+    url: '/captcha',
     headers: {
       isToken: false
     },

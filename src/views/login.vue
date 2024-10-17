@@ -35,6 +35,7 @@
         </el-input>
         <div class="login-code">
           <img :src="codeUrl" @click="getCode" class="login-code-img"/>
+          <input type='hidden' v-model="loginForm.codeKey" />
         </div>
       </el-form-item>
       <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">記住密碼</el-checkbox>
@@ -73,6 +74,7 @@ export default {
         password: "",
         rememberMe: false,
         code: "",
+        codeKey: "",
         uuid: ""
       },
       loginRules: {
@@ -108,9 +110,12 @@ export default {
     getCode() {
       if(this.captchaEnabled){
         getCodeImg().then(res => {
+          console.log(res);
           if (this.captchaEnabled) {
-            this.codeUrl = "data:image/gif;base64," + res.img;
-            this.loginForm.uuid = res.uuid;
+            this.codeUrl = res.data.img;
+            //"data:image/gif;base64," + res.img;
+          //this.loginForm.uuid = res.uuid;
+            this.loginForm.codeKey = res.data.key;
           }
         });
       }

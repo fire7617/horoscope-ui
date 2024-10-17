@@ -28,3 +28,6 @@ npm run build:stage
 # 構建生產環境
 npm run build:prod
 ```
+
+
+nvm install 14

@@ -32,10 +32,10 @@
       <el-table-column label="標題" align="center" prop="title" />
       <el-table-column label="簡稱" align="center" prop="subTitle" />
       <el-table-column label="詳情" align="center" prop="content" show-overflow-tooltip/>
-      <el-table-column label="TID" align="center" prop="tid"  />
-      <el-table-column label="分類(T1)" align="center" prop="t1" />
-      <el-table-column label="子類(T2)" align="center" prop="t2"  />
-      <el-table-column label="子類(T3)" align="center" prop="t3" />
+      <el-table-column label="TID" align="center" prop="fmt.tid"  />
+      <el-table-column label="分類(T1)" align="center" prop="fmt.t1" />
+      <el-table-column label="子類(T2)" align="center" prop="fmt.t2"  />
+      <el-table-column label="子類(T3)" align="center" prop="fmt.t3" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="150">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
@@ -51,32 +51,66 @@
       @pagination="getList" />
 
     <!-- 添加或修改對話框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="標題" prop="subType">
-          <el-input v-model="form.title" placeholder="請輸入標題" />
+    <el-dialog v-loading="loading" :title="title" :visible.sync="open" width="500px" append-to-body>
+      <el-form ref="form" :model="form" label-width="80px">
+        <el-form-item label="TID" prop="tid">
+          <el-select v-model="form.tid" @change="handleChangeData('tid')">
+            <el-option value="1" label="星體"></el-option>
+            <el-option value="2" label="宮位"></el-option>
+            <el-option value="3" label="星體角度"></el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="簡稱" prop="subTitle">
-          <el-input v-model="form.subTitle" placeholder="請輸入簡稱" />
+        <el-form-item label="分類(T1)" prop="t1" @change="handleChangeData('t1')">
+            <el-select v-model="form.t1">
+              <el-option v-for="item in planetOption" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="子類(T2)" prop="t2" >
+          <template v-if="form.tid==='1'">
+            <el-select v-model="form.t2"  @change="handleChangeData('t2')">
+              <el-option v-for="item in signOption" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+          </template>
+
+          <template v-if="form.tid==='2'">
+            <el-select v-model="form.t2" @change="handleChangeData('t2')">
+              <el-option v-for="item in planetOption" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+          </template>
+          <template v-if="form.tid==='3'">
+            <el-select v-model="form.t2" @change="handleChangeData('t2')">
+              <el-option v-for="item in 12" :key="item" :label="item" :value="item" />
+            </el-select>
+            宮
+          </template>
+        </el-form-item>
+        <el-form-item label="子類(T3)" prop="t3" v-if="form.tid==='3'">
+            <el-select v-model="form.t3">
+              <el-option key="0"    label="0度" value="0" />
+              <el-option key="60"   label="60度" value="60" />
+              <el-option key="90"   label="90度" value="90" />
+              <el-option key="120"  label="120度" value="120" />
+              <el-option key="180"  label="180度" value="180" />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="">
+            <el-tabs v-model="activeName">
+              <el-tab-pane label="英文" name="en"></el-tab-pane>
+              <el-tab-pane label="中文" name="zh-tw"></el-tab-pane>
+            </el-tabs>
+        </el-form-item>
+        <el-form-item label="標題" prop="">
+          <el-input v-if="activeName==='en'" v-model="form.en.title" placeholder="請輸入標題" />
+          <el-input v-if="activeName==='zh-tw'" v-model="form.tw.title" placeholder="請輸入標題" />
+        </el-form-item>
+        <el-form-item label="簡稱" prop="">
+          <el-input v-if="activeName==='en'" v-model="form.en.subTitle" placeholder="請輸入簡稱" />
+          <el-input v-if="activeName==='zh-tw'" v-model="form.tw.subTitle" placeholder="請輸入簡稱" />
         </el-form-item>
         <el-form-item label="詳情" prop="content">
-          <el-input v-model="form.content" placeholder="請輸入詳情" />
+          <el-input v-if="activeName==='en'" v-model="form.en.content" placeholder="請輸入詳情" />
+          <el-input v-if="activeName==='zh-tw'" v-model="form.tw.content" placeholder="請輸入詳情" />
         </el-form-item>
-
-        <el-form-item label="TID" prop="tid">
-          <el-input v-model="form.tid" placeholder="請輸入TID" />
-        </el-form-item>
-
-        <el-form-item label="分類(T1)" prop="t1">
-          <el-input v-model="form.t1" placeholder="請輸入分類" />
-        </el-form-item>
-        <el-form-item label="子類(T2)" prop="t2">
-          <el-input v-model="form.t1" placeholder="請輸入子類(T2)" />
-        </el-form-item>
-        <el-form-item label="子類(T3)" prop="t3">
-          <el-input v-model="form.t1" placeholder="請輸入子類(T3)" />
-        </el-form-item>
-
       </el-form>
 
       <div slot="footer" class="dialog-footer">
@@ -90,12 +124,14 @@
 
 <script>
 import { listChart_data, getChart_data, delChart_data, addChart_data, updateChart_data } from "@/api/system/chart_data";
+import { listPlanet } from "@/api/system/base";
 
 export default {
   name: "Chart_data",
   dicts: ['sys_normal_disable'],
   data() {
     return {
+      activeName: 'en',
       // 遮罩層
       loading: true,
       // 選中數組
@@ -122,25 +158,102 @@ export default {
         subStatus: undefined
       },
       // 表單參數
-      form: {},
+      form: {
+        en: {
+          title: '',
+          subTitle: '',
+          content: '',
+        },
+        tw: {
+          title: '',
+          subTitle: '',
+          content: '',
+        },
+      },
       // 表單校驗
       rules: {
-        title: [
-          { required: true, message: "標題不能為空", trigger: "blur" }
-        ],
-        content: [
-          { required: true, message: "詳情不能為空", trigger: "blur" }
-        ],
-        subTitle: [
-          { required: true, message: "簡稱不能為空", trigger: "blur" }
-        ]
       },
-    };
+      planetOption: [
+        {
+          "value": 0,
+          "label": "太阳"
+        },
+        {
+          "value": 1,
+          "label": "月亮"
+        },
+        {
+          "value": 2,
+          "label": "水星"
+        },
+        {
+          "value": 3,
+          "label": "金星"
+        },
+        {
+          "value": 4,
+          "label": "火星"
+        },
+        {
+          "value": 5,
+          "label": "木星"
+        },
+        {
+          "value": 6,
+          "label": "土星"
+        },
+        {
+          "value": 7,
+          "label": "天王星"
+        },
+        {
+          "value": 8,
+          "label": "海王星"
+        },
+        {
+          "value": 9,
+          "label": "冥王星"
+        }
+      ],
+      signOption: [
+        { value:"1", label:"白羊"},
+        { value:"2", label:"金牛"},
+        { value:"3", label:"双子"},
+        { value:"4", label:"巨蟹"},
+        { value:"5", label:"狮子"},
+        { value:"6", label:"处女"},
+        { value:"7", label:"天秤"},
+        { value:"8", label:"天蝎"},
+        { value:"9", label:"射手"},
+        { value:"10", label:"摩羯"},
+        { value:"11", label:"水瓶"},
+        { value:"12", label:"双鱼"},
+      ]
+    }
   },
   created() {
     this.getList();
   },
+  mounted() {
+  },
+  watch() {
+  },
   methods: {
+    handleChangeData(mark){
+      if (mark == 'tid') {
+        this.form.t1 = ''
+        this.form.t2 = ''
+        this.form.t3 = ''
+      }
+
+      if (mark == 't1') {
+        this.form.t2 = ''
+        this.form.t3 = ''
+      }
+      if (mark == 't2') {
+        this.form.t3 = ''
+      }
+    },
     /** 查詢星盤結果列表 */
     getList() {
       this.loading = true;
@@ -159,13 +272,23 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        subType: undefined,
-        subStatus: undefined,
-        score: undefined,
-        shortReview: undefined,
-        advantage: undefined,
-        disadvantage: undefined,
-        detail: undefined,
+        title: '',
+        subTitle: '',
+        content: '',
+        tid: '',
+        t1: '',
+        t2:'',
+        t3: '',
+        en: {
+          title: '',
+          subTitle: '',
+          content: '',
+        },
+        tw: {
+          title: '',
+          subTitle: '',
+          content: '',
+        },
       };
       this.resetForm("form");
     },
@@ -196,6 +319,7 @@ export default {
       this.reset();
       const id = row.id || this.ids
       getChart_data(id).then(response => {
+        response.data.tid = response.data.tid.toString();
         this.form = response.data;
         this.open = true;
         this.title = "修改星盤結果";
@@ -205,16 +329,19 @@ export default {
     submitForm: function () {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          this.loading = true;
           if (this.form.id != undefined) {
             updateChart_data(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
+              this.loading = false;
               this.getList();
             });
           } else {
             addChart_data(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
+              this.loading = false;
               this.getList();
             });
           }
